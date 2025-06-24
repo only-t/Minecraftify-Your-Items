@@ -1,7 +1,7 @@
 name = "Minecraftify Your Items!"
 description = "Why let all that junk lay around your base when you can let it float!"
 author = "LukaS"
-version = "1.0.0"
+version = "1.1.1"
 forumthread = ""
 icon_atlas = "icon.xml"
 icon = "icon.tex"
