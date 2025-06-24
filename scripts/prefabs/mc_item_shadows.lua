@@ -60,6 +60,10 @@ local function fn()
     EmitterManager:AddEmitter(inst, nil, function()
         effect:ClearAllParticles(0)
 
+        if ThePlayer == nil then
+            return
+        end
+
         for item, pos in pairs(ThePlayer.mc_items) do
             effect:AddParticleUV(
                 0,

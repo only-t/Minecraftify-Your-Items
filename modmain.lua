@@ -11,8 +11,15 @@ PrefabFiles = {
 
 modimport("scripts/MYIconstants")
 
+local function TagsCheck(inst)
+    return not inst:HasTag("flying") and
+           not inst:HasTag("heavy") and
+           not inst:HasTag("structure") and
+           not inst:HasTag("furnituredecor")
+end
+
 AddPrefabPostInitAny(function(inst)
-    if not _G.TheNet:IsDedicated() and inst.AnimState and not inst:HasTag("flying") and not inst:HasTag("heavy") then
+    if not _G.TheNet:IsDedicated() and inst.AnimState and TagsCheck(inst) then
         inst:DoTaskInTime(0, function() -- Wait 1 frame for the replica components to get created on the client
             if inst.replica.inventoryitem and not inst.replica.combat then
                 inst:AddComponent("MYImanager")
@@ -72,7 +79,10 @@ local old_OptionsScreen_Apply = OptionsScreen.Apply
 OptionsScreen.Apply = function(self, ...)
     _G.Profile:SetValue(_G.MYI.SETTINGS.OPTIONS.WORLD_Y.OPTIONS_STR, self.working[_G.MYI.SETTINGS.OPTIONS.WORLD_Y.OPTIONS_STR])
     _G.Profile:SetValue(_G.MYI.SETTINGS.OPTIONS.SHADOWS.OPTIONS_STR, self.working[_G.MYI.SETTINGS.OPTIONS.SHADOWS.OPTIONS_STR])
-    _G.ThePlayer.mc_items = {  }
+
+    if _G.ThePlayer then -- Player exists == we're changing setting during playtime
+        _G.ThePlayer.mc_items = {  } -- Reset the mc item tracker
+    end
 
     old_OptionsScreen_Apply(self, ...)
 end

@@ -1,4 +1,8 @@
 local function ClearEffect(self)
+    if ThePlayer == nil then
+        return
+    end
+    
     ThePlayer.mc_items[self.inst] = nil
 
     self.inst.AnimState:ClearDefaultEffectHandle()
