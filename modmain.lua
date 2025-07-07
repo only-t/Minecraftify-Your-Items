@@ -80,7 +80,7 @@ OptionsScreen.Apply = function(self, ...)
     _G.Profile:SetValue(_G.MYI.SETTINGS.OPTIONS.WORLD_Y.OPTIONS_STR, self.working[_G.MYI.SETTINGS.OPTIONS.WORLD_Y.OPTIONS_STR])
     _G.Profile:SetValue(_G.MYI.SETTINGS.OPTIONS.SHADOWS.OPTIONS_STR, self.working[_G.MYI.SETTINGS.OPTIONS.SHADOWS.OPTIONS_STR])
 
-    if _G.ThePlayer then -- Player exists == we're changing setting during playtime
+    if _G.ThePlayer then -- Player exists == we're changing settings during playtime
         _G.ThePlayer.mc_items = {  } -- Reset the mc item tracker
     end
 

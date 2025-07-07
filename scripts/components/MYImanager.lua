@@ -19,7 +19,10 @@ end
 local MYIManager = Class(function(self, inst)
     self.inst = inst
 
-    self.inst:StartUpdatingComponent(self)
+    if not self.inst:IsAsleep() then
+        self.inst:StartUpdatingComponent(self)
+    end
+
     self.shader_set = false
 end)
 
@@ -33,6 +36,7 @@ function MYIManager:OnRemoveFromEntity()
 end
 
 function MYIManager:OnEntitySleep()
+    ClearEffect(self) -- To remove the shadow
 	self.inst:StopUpdatingComponent(self)
 end
 
