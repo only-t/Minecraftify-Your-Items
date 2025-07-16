@@ -5,12 +5,12 @@ local function modprint(print_type, mainline, ...)
 
     _G.assert(type(mainline) == "string", "mainline has to be a string!")
 
-    if print_type == _G.LFC.PRINT then
-        print(_G.LFC.PRINT_PREFIX..mainline)
-    elseif print_type == _G.LFC.WARN then
-        print(_G.LFC.WARN_PREFIX..mainline)
-    elseif print_type == _G.LFC.ERROR then
-        print(_G.LFC.ERROR_PREFIX..mainline)
+    if print_type == _G.MYI.PRINT then
+        print(_G.MYI.PRINT_PREFIX..mainline)
+    elseif print_type == _G.MYI.WARN then
+        print(_G.MYI.WARN_PREFIX..mainline)
+    elseif print_type == _G.MYI.ERROR then
+        print(_G.MYI.ERROR_PREFIX..mainline)
     end
 
     for _, line in ipairs({...}) do
@@ -22,7 +22,7 @@ end
 
 local function modassert(cond, mainline, ...)
     if not cond then
-        print(_G.LFC.ERROR_PREFIX..mainline)
+        print(_G.MYI.ERROR_PREFIX..mainline)
         for _, line in ipairs({...}) do
             print("    "..line)
         end
