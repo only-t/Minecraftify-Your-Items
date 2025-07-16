@@ -9,7 +9,7 @@ PrefabFiles = {
     "mc_item_shadows"
 }
 
-modimport("scripts/MYIconstants")
+modimport("scripts/MYIenv")
 
 local function TagsCheck(inst)
     return not inst:HasTag("flying") and
@@ -57,11 +57,11 @@ local function EnabledOptionsIndex(enabled)
 end
 
 if _G.Profile:GetValue(_G.MYI.SETTINGS.OPTIONS.WORLD_Y.OPTIONS_STR) == nil then
-    _G.Profile:SetValue(_G.MYI.SETTINGS.OPTIONS.WORLD_Y.OPTIONS_STR, true) -- true is the default value
+    _G.Profile:SetValue(_G.MYI.SETTINGS.OPTIONS.WORLD_Y.OPTIONS_STR, _G.MYI.SETTINGS.OPTIONS.WORLD_Y.DEFAULT)
 end
 
 if _G.Profile:GetValue(_G.MYI.SETTINGS.OPTIONS.SHADOWS.OPTIONS_STR) == nil then
-    _G.Profile:SetValue(_G.MYI.SETTINGS.OPTIONS.SHADOWS.OPTIONS_STR, true) -- true is the default value
+    _G.Profile:SetValue(_G.MYI.SETTINGS.OPTIONS.SHADOWS.OPTIONS_STR, _G.MYI.SETTINGS.OPTIONS.SHADOWS.DEFAULT)
 end
 
 local old_OptionsScreen_DoInit = OptionsScreen.DoInit
