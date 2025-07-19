@@ -20,10 +20,11 @@ local function DeleteRow()
     
 end
 
-local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data)
+local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, onapply)
 	Screen._ctor(self, "MYIEditListScreen")
 
     self.owner = owner
+    self.onapply = onapply
 
     self.black = self:AddChild(TEMPLATES.BackgroundTint())
     self.root = self:AddChild(TEMPLATES.ScreenRoot())
@@ -55,7 +56,13 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data)
 	self.dirty = false
 
     local function OnTextInputted(w)
-        MYI.modprint(MYI.PRINT, "Editing data #"..w.row_data.id, "str - "..w.editableline.textbox:GetString())
+        self.edited_data[w.row_data.id].data = w.editline.textbox:GetString()
+
+        if self.data[w.row_data.id].data ~= self.edited_data[w.row_data.id].data then
+            self:MakeDirty(true)
+        else
+            self:MakeDirty(false)
+        end
     end
 
     local function ScrollWidgetsCtor(context, idx)
@@ -63,9 +70,9 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data)
         widget.bg = widget:AddChild(Image("images/frontend_redux.xml", "serverlist_listitem_normal.tex"))
         widget.bg:ScaleToSize(row_width + 20, row_height)
         
-        widget.editableline = widget:AddChild(TEMPLATES.StandardSingleLineTextEntry("", row_width - del_btn_width, row_height, CHATFONT, 28, ""))
-        widget.editableline:SetPosition(-del_btn_width / 2, 0)
-        widget.editableline.textbox.OnTextInputted = function() OnTextInputted(widget) end
+        widget.editline = widget:AddChild(TEMPLATES.StandardSingleLineTextEntry("", row_width - del_btn_width, row_height, CHATFONT, 28, ""))
+        widget.editline:SetPosition(-del_btn_width / 2, 0)
+        widget.editline.textbox.OnTextInputted = function() OnTextInputted(widget) end
 
         widget.addnewbtn = widget:AddChild(TEMPLATES.StandardButton(AddNewRow, "Add New", { (row_width - del_btn_width) / 2, row_height }))
         widget.addnewbtn:SetPosition(-del_btn_width / 2, 0)
@@ -83,23 +90,24 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data)
 
             if data == "addnewbtn" then
                 widget.addnewbtn:Show()
-                widget.editableline:Hide()
+                widget.editline:Hide()
                 widget.delbtn:Hide()
             else
                 widget.addnewbtn:Hide()
-                widget.editableline:Show()
-                widget.editableline.textbox:SetString(data.data)
+                widget.editline:Show()
+                widget.editline.textbox:SetString(data.data)
                 widget.delbtn:Show()
             end
         else
             widget.bg:Hide()
-            widget.editableline:Hide()
+            widget.editline:Hide()
             widget.addnewbtn:Hide()
             widget.delbtn:Hide()
 		end
 	end
 
     self.data = data or {  }
+    self.edited_data = deepcopy(self.data)
     table.insert(self.data, "addnewbtn") -- After the real data rows insert a special row for generating a "Add Tag" button
 
     self.scroll_list = self.listpanel:AddChild(TEMPLATES.ScrollingGrid(
@@ -133,18 +141,42 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data)
 	self.default_focus = self.scroll_list
 end)
 
+function MYIEditListScreen:MakeDirty(dirty)
+	if dirty ~= nil then
+		self.dirty = dirty
+	else
+		self.dirty = true
+	end
+end
+
+function MYIEditListScreen:IsDirty()
+	return self.dirty
+end
+
 function MYIEditListScreen:Apply()
 	if self:IsDirty() then
-		-- KnownModIndex:SaveConfigurationOptions(function()
-		-- 	self:MakeDirty(false)
-		--     TheFrontEnd:PopScreen()
-		-- end, self.modname, settings, self.client_config)
+        self.data = self.edited_data
+        if self.onapply then
+            self.onapply(self.data)
+        end
+        TheFrontEnd:PopScreen()
 	else
-		-- self:MakeDirty(false)
-	    -- TheFrontEnd:PopScreen()
+		self:MakeDirty(false)
+	    TheFrontEnd:PopScreen()
 	end
-	
-	TheFrontEnd:PopScreen()
+end
+
+function MYIEditListScreen:Cancel()
+	if self:IsDirty() then
+		self:ConfirmRevert(function()
+			self:MakeDirty(false)
+			TheFrontEnd:PopScreen()
+		    TheFrontEnd:PopScreen()
+		end)
+	else
+		self:MakeDirty(false)
+	    TheFrontEnd:PopScreen()
+	end
 end
 
 function MYIEditListScreen:ConfirmRevert(callback)
@@ -164,33 +196,6 @@ function MYIEditListScreen:ConfirmRevert(callback)
             }
 		)
 	)
-end
-
-function MYIEditListScreen:Cancel()
-	if self:IsDirty() and not (self.started_default and self:IsDefaultSettings()) then
-		-- self:ConfirmRevert(function()
-		-- 	self:MakeDirty(false)
-		-- 	TheFrontEnd:PopScreen()
-		--     TheFrontEnd:PopScreen()
-		-- end)
-	else
-		-- self:MakeDirty(false)
-	    -- TheFrontEnd:PopScreen()
-	end
-	
-	TheFrontEnd:PopScreen()
-end
-
-function MYIEditListScreen:MakeDirty(dirty)
-	if dirty ~= nil then
-		self.dirty = dirty
-	else
-		self.dirty = true
-	end
-end
-
-function MYIEditListScreen:IsDirty()
-	return self.dirty
 end
 
 function MYIEditListScreen:OnControl(control, down)

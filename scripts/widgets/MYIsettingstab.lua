@@ -12,8 +12,8 @@ local spinner_height = 36
 local narrow_field_nudge = -50
 local space_between = 5
 
-local function OpenList(optionsscreen, list_title, data)
-	local editlist = MYIEditListScreen(optionsscreen, list_title, data)
+local function OpenList(optionsscreen, list_title, data, onapply)
+	local editlist = MYIEditListScreen(optionsscreen, list_title, data, onapply)
 	TheFrontEnd:PushScreen(editlist)
 end
 
@@ -95,9 +95,8 @@ local function AddSettingTooltip(widget, type, tooltip, tooltipdivider)
 	end
 end
 
-local MYISettingsTab = Class(Widget, function(self, owner, settings)
+local MYISettingsTab = Class(Widget, function(self, owner)
     self.owner = owner
-	self.loaded_settings = settings
     Widget._ctor(self, "MYISettingsTab")
 
     self.grid = self:AddChild(Grid())
@@ -114,13 +113,19 @@ local MYISettingsTab = Class(Widget, function(self, owner, settings)
 				self.owner.working[setting.ID] = data
 				self.owner:UpdateMenu()
 			end
-			self[widget_name].type = setting.TYPE
-			self[widget_name].setting_id = setting.ID
 		end
 		
 		if setting.TYPE == MYI.SETTING_TYPES.LIST then -- List mod setting gets a button created to open itself
 			widget_name = string.lower(setting.ID).."_btn"
-			self[widget_name] = CreateSettingButton(setting.NAME, function() OpenList(self.owner, setting.NAME, deepcopy(self.loaded_settings[setting.ID])) end, setting.TOOLTIP)
+			self[widget_name] = CreateSettingButton(setting.NAME,
+				function()
+					OpenList(self.owner, setting.NAME, deepcopy(self.owner.working[setting.ID]), function(data)
+						self.owner.working[setting.ID] = data
+						self.owner:UpdateMenu()
+					end)
+				end,
+				setting.TOOLTIP
+			)
 			self[widget_name].tooltip_text = setting.TOOLTIP
 		end
 

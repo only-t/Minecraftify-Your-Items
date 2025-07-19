@@ -19,7 +19,7 @@ local MYISettingsTab = require("widgets/MYIsettingstab")
 local OptionsScreen = require("screens/redux/optionsscreen")
 local old_OptionsScreen_BuildMenu = OptionsScreen._BuildMenu
 OptionsScreen._BuildMenu = function(self, subscreener, ...)
-    subscreener.sub_screens[_G.MYI.MOD_CODE] = self.panel_root:AddChild(MYISettingsTab(self, loaded_settings))
+    subscreener.sub_screens[_G.MYI.MOD_CODE] = self.panel_root:AddChild(MYISettingsTab(self))
     local menu = old_OptionsScreen_BuildMenu(self, subscreener, ...)
 
 	local myi_button = subscreener:MenuButton(_G.MYI.MOD_SETTINGS.TAB_NAME, _G.MYI.MOD_CODE, _G.MYI.MOD_SETTINGS.TOOLTIP, self.tooltip)
@@ -63,6 +63,12 @@ end
 local old_OptionsScreen_InitializeSpinners = OptionsScreen.InitializeSpinners
 OptionsScreen.InitializeSpinners = function(self, ...)
     for _, w in pairs(self.subscreener.sub_screens[_G.MYI.MOD_CODE].left_column) do
+        if w.type == _G.MYI.SETTING_TYPES.SPINNER then
+            w:SetSelectedIndex(EnabledOptionsIndex(self.working[w.setting_id]))
+        end
+    end
+
+    for _, w in pairs(self.subscreener.sub_screens[_G.MYI.MOD_CODE].right_column) do
         if w.SetSelectedIndex then
             w:SetSelectedIndex(EnabledOptionsIndex(self.working[w.setting_id]))
         end
