@@ -71,7 +71,7 @@ end
 ---@return void
 local function modsetpersistentdata(filename, data, cb)
     if type(data) == "table" then
-        data = json.encode(data)
+        data = _G.json.encode(data)
     elseif type(data) ~= "string" then
         modassert(false, "Failed to save persistent data!", "Data provided is neither a table nor a string!")
     end
@@ -163,10 +163,10 @@ _G[MOD_CODE].MOD_SETTINGS = {
             COLUMN = 2,
             TYPE = _G[MOD_CODE].SETTING_TYPES.LIST,
             DEFAULT = {
-                { id = 0, data = "flying" },
-                { id = 1, data = "heavy" },
-                { id = 2, data = "structure" },
-                { id = 3, data = "furnituredecor" }
+                { id = 1, data = "flying" },
+                { id = 2, data = "heavy" },
+                { id = 3, data = "structure" },
+                { id = 4, data = "furnituredecor" }
             }
         },
         EXCLUDE_PREFABS = {
