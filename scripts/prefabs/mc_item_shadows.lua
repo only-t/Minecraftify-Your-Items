@@ -64,7 +64,7 @@ local function fn()
             return
         end
 
-        for item, pos in pairs(ThePlayer.mc_items) do
+        for _, pos in pairs(ThePlayer.mc_items) do
             effect:AddParticleUV(
                 0,
                 0,               -- lifetime
