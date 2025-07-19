@@ -54,7 +54,7 @@ function MYIManager:OnUpdate()
         self.shader_set = false
     end
 
-    if self.inst.replica.inventoryitem:IsHeld() then
+    if self.inst.replica.inventoryitem == nil or self.inst.replica.inventoryitem:IsHeld() then
         if self.shader_set then
             ClearEffect(self)
         end
