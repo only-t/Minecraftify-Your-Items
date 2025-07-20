@@ -6,7 +6,7 @@ Assets = {
 }
 
 PrefabFiles = {
-    "mc_item_shadows"
+    "MYIshadows"
 }
 
 -- [[ Mod environment ]]
@@ -33,8 +33,8 @@ end)
 
 AddPlayerPostInit(function(inst)
     if not _G.TheNet:IsDedicated() then
-        inst.mc_item_shadows = _G.SpawnPrefab("mc_item_shadows")
-        inst.mc_item_shadows.entity:SetParent(inst.entity)
+        inst.MYIshadows = _G.SpawnPrefab("MYIshadows")
+        inst.MYIshadows.entity:SetParent(inst.entity)
     end
 end)
 --

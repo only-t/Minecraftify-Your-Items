@@ -81,4 +81,4 @@ local function fn()
     return inst
 end
 
-return Prefab("mc_item_shadows", fn, assets)
+return Prefab("MYIshadows", fn, assets)
