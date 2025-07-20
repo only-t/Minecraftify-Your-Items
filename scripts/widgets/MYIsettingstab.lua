@@ -121,6 +121,11 @@ local MYISettingsTab = Class(Widget, function(self, owner)
 				function()
 					OpenList(self.owner, setting.NAME, deepcopy(self.owner.working[setting.ID]), function(data)
 						self.owner.working[setting.ID] = data
+						if #self.owner.working[setting.ID] ~= #self.owner.options[setting.ID] then
+							self.owner:MakeDirty()
+							return
+						end
+
 						self.owner:UpdateMenu()
 					end)
 				end,

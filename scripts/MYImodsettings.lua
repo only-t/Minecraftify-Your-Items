@@ -69,7 +69,7 @@ OptionsScreen.InitializeSpinners = function(self, ...)
     end
 
     for _, w in pairs(self.subscreener.sub_screens[_G.MYI.MOD_CODE].right_column) do
-        if w.SetSelectedIndex then
+        if w.type == _G.MYI.SETTING_TYPES.SPINNER then
             w:SetSelectedIndex(EnabledOptionsIndex(self.working[w.setting_id]))
         end
     end

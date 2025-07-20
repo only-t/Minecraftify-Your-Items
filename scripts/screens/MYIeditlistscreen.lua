@@ -10,14 +10,33 @@ local TEMPLATES = require "widgets/redux/templates"
 
 local del_btn_width = 70
 local del_btn_height = 40
+local add_btn_width = 100
+local add_btn_height = 50
 local row_width, row_height = 585, 40
 
-local function AddNewRow()
-    
+local function MakeUnsavedChangesWarningTooltip()
+	local w = Text(CHATFONT, 25, "You have unsaved changes!")
+	w:SetPosition(10, -580 / 2 + 15)
+	w:SetHAlign(ANCHOR_RIGHT)
+	w:SetVAlign(ANCHOR_TOP)
+	w:SetRegionSize(500, 80)
+	w:EnableWordWrap(true)
+
+    return w
 end
 
-local function DeleteRow()
-    
+local function CheckIsDirty(self)
+    if #self.data ~= #self.edited_data then
+        return true
+    end
+
+    for i, data in ipairs(self.edited_data) do
+        if self.data[i].data ~= data.data then
+            return true
+        end
+    end
+
+    return false
 end
 
 local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, onapply)
@@ -30,7 +49,7 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
     self.root = self:AddChild(TEMPLATES.ScreenRoot())
 
     local btns = {
-        { text = STRINGS.UI.OPTIONS.APPLY,  cb = function() self:Apply()  end },
+        { text = "Save Changes",            cb = function() self:Apply()  end },
         { text = STRINGS.UI.OPTIONS.CANCEL, cb = function() self:Cancel() end }
     }
 
@@ -38,11 +57,6 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
 
     self.header = self.dialog:AddChild(Widget("header"))
     self.header:SetPosition(0, 270)
-
-    self.unsaved_icon = self.dialog:AddChild(Image("images/button_icons2.xml", "workshop_filter.tex"))
-    self.unsaved_icon:SetPosition((row_width + 20) / 2, -290 + 35)
-    self.unsaved_icon:ScaleToSize(50, 50)
-    self.unsaved_icon:Hide()
 
     local title_max_w = 420
     local title_max_chars = 70
@@ -58,7 +72,7 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
     local function OnTextInputted(w)
         self.edited_data[w.row_data.id].data = w.editline.textbox:GetString()
 
-        if self.data[w.row_data.id].data ~= self.edited_data[w.row_data.id].data then
+        if CheckIsDirty(self) then
             self:MakeDirty(true)
         else
             self:MakeDirty(false)
@@ -74,10 +88,7 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
         widget.editline:SetPosition(-del_btn_width / 2, 0)
         widget.editline.textbox.OnTextInputted = function() OnTextInputted(widget) end
 
-        widget.addnewbtn = widget:AddChild(TEMPLATES.StandardButton(AddNewRow, "Add New", { (row_width - del_btn_width) / 2, row_height }))
-        widget.addnewbtn:SetPosition(-del_btn_width / 2, 0)
-
-        widget.delbtn = widget:AddChild(TEMPLATES.StandardButton(DeleteRow, "Delete", { del_btn_width, del_btn_height }))
+        widget.delbtn = widget:AddChild(TEMPLATES.StandardButton(function() self:DeleteRow(widget.row_data.id) end, "Delete", { del_btn_width, del_btn_height }))
         widget.delbtn:SetPosition((row_width - del_btn_width) / 2, 0)
 
         return widget
@@ -87,28 +98,18 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
 		if data then
             widget.row_data = data
             widget.bg:Show()
-
-            if data == "addnewbtn" then
-                widget.addnewbtn:Show()
-                widget.editline:Hide()
-                widget.delbtn:Hide()
-            else
-                widget.addnewbtn:Hide()
-                widget.editline:Show()
-                widget.editline.textbox:SetString(data.data)
-                widget.delbtn:Show()
-            end
+            widget.editline:Show()
+            widget.editline.textbox:SetString(data.data)
+            widget.delbtn:Show()
         else
             widget.bg:Hide()
             widget.editline:Hide()
-            widget.addnewbtn:Hide()
             widget.delbtn:Hide()
 		end
 	end
 
     self.data = data or {  }
     self.edited_data = deepcopy(self.data)
-    table.insert(self.data, "addnewbtn") -- After the real data rows insert a special row for generating a "Add Tag" button
 
     self.scroll_list = self.listpanel:AddChild(TEMPLATES.ScrollingGrid(
         self.data,
@@ -134,6 +135,36 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
     self.horizontal_line2:SetPosition(0, -(self.scroll_list.visible_rows / 2 * row_height + 8))
     self.horizontal_line2:SetSize(row_width + 30, 5)
 
+    self.unsaved_icon = self.dialog:AddChild(Image("images/button_icons2.xml", "workshop_filter.tex"))
+    self.unsaved_icon:SetPosition(row_width / 2, -(self.scroll_list.visible_rows / 2 * row_height + add_btn_height))
+    self.unsaved_icon:ScaleToSize(50, 50)
+    self.unsaved_icon.OnGainFocus = function(self, ...)
+        self._base.OnGainFocus(self, ...)
+        if TheInput:ControllerAttached() then
+            return
+        end
+
+        if self:IsVisible() then
+            self.tooltip:Show()
+        end
+    end
+    self.unsaved_icon.OnLoseFocus = function(self, ...)
+        self._base.OnLoseFocus(self, ...)
+
+        if TheInput:ControllerAttached() then
+            return
+        end
+
+        self.tooltip:Hide()
+    end
+
+    self.unsaved_icon.tooltip = self.dialog:AddChild(MakeUnsavedChangesWarningTooltip())
+    self.unsaved_icon:Hide()
+    self.unsaved_icon.tooltip:Hide()
+
+    self.addnewrowbtn = self.scroll_list:AddChild(TEMPLATES.StandardButton(function() self:AddNewRow() end, "Add New", { add_btn_width, add_btn_height }))
+    self.addnewrowbtn:SetPosition((-row_width + add_btn_width) / 2, -(self.scroll_list.visible_rows / 2 * row_height + add_btn_height))
+
 	if TheInput:ControllerAttached() then
         self.dialog.actions:Hide()
 	end
@@ -141,12 +172,51 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
 	self.default_focus = self.scroll_list
 end)
 
+function MYIEditListScreen:AddNewRow()
+    table.insert(self.edited_data, { id = #self.edited_data + 1, data = "" })
+    self:UpdateList()
+end
+
+function MYIEditListScreen:DeleteRow(row_id)
+    table.remove(self.edited_data, row_id)
+
+    for i = row_id, #self.edited_data, 1 do -- Adjust the row ids
+        self.edited_data[i].id = self.edited_data[i].id - 1
+    end
+
+    self:UpdateList()
+end
+
+function MYIEditListScreen:UpdateList()
+    if CheckIsDirty(self) then
+        self:MakeDirty(true)
+    else
+        self:MakeDirty(false)
+    end
+
+    self.scroll_list:SetItemsData(self.edited_data)
+end
+
 function MYIEditListScreen:MakeDirty(dirty)
 	if dirty ~= nil then
 		self.dirty = dirty
 	else
 		self.dirty = true
 	end
+
+    if self.dirty then
+        self.unsaved_icon:Show()
+
+        if TheInput:ControllerAttached() then
+            self.unsaved_icon.tooltip:Show()
+        end
+    else
+        self.unsaved_icon:Hide()
+
+        if TheInput:ControllerAttached() then
+            self.unsaved_icon.tooltip:Hide()
+        end
+    end
 end
 
 function MYIEditListScreen:IsDirty()
