@@ -100,7 +100,7 @@ end
 -- [[ Disable for live builds ]]
 _G[MOD_CODE].DEV = true
 
--- [[ Universal variables ]]
+-- [[ Universal Variables ]]
 _G[MOD_CODE].PRINT = 0
 _G[MOD_CODE].WARN = 1
 _G[MOD_CODE].ERROR = 2
@@ -121,7 +121,7 @@ _G[MOD_CODE].modgetpersistentdata = modgetpersistentdata
 -- [[ Constants ]]
 -- EMPTY
 
--- [[ Mod settings ]] -- Not to be confused with configuration_options.
+-- [[ Mod Settings ]] -- Not to be confused with configuration_options.
                       -- These show up in Game Options and can be updated during gameplay.
 local enableDisableOptions = {
     { text = _G.STRINGS.UI.OPTIONS.DISABLED, data = false },
@@ -179,3 +179,66 @@ _G[MOD_CODE].MOD_SETTINGS = {
         }
     }
 }
+
+_G[MOD_CODE].CURRENT_SETTINGS = {  }
+
+-- [[ Misc. Variables ]]
+_G[MOD_CODE].AffectedEntities = {  }
+
+_G[MOD_CODE].EnableForEntity = function(ent)
+    if ent.components and ent.components.MYImanager == nil then
+        ent:AddComponent("MYImanager")
+        _G[MOD_CODE].AffectedEntities[ent.GUID] = ent
+    end
+end
+
+_G[MOD_CODE].DisableForEntity = function(ent)
+    if ent.components and ent.components.MYImanager then
+        ent:RemoveComponent("MYImanager")
+    end
+    
+    _G[MOD_CODE].AffectedEntities[ent.GUID] = nil
+end
+
+_G[MOD_CODE].ShouldBeAffected = function(ent)
+    if ent.replica.inventoryitem == nil or ent.replica.combat then
+        return false
+    end
+
+    local exclude_prefabs = {  }
+    for _, entry in ipairs(_G[MOD_CODE].CURRENT_SETTINGS[_G[MOD_CODE].MOD_SETTINGS.SETTINGS.EXCLUDE_PREFABS.ID]) do
+        table.insert(exclude_prefabs, entry.data)
+    end
+
+    if table.contains(exclude_prefabs, ent.prefab) then
+        return false
+    end
+
+    local exclude_tags = {  }
+    for _, entry in ipairs(_G[MOD_CODE].CURRENT_SETTINGS[_G[MOD_CODE].MOD_SETTINGS.SETTINGS.EXCLUDE_TAGS.ID]) do
+        table.insert(exclude_tags, entry.data)
+    end
+
+    if #exclude_tags == 0 then
+        return true
+    end
+
+    if ent:HasAnyTag(_G.unpack(exclude_tags)) then
+        return false
+    end
+
+    return true
+end
+
+_G[MOD_CODE].UpdateAffectedEntities = function()
+    for _, ent in pairs(_G.Ents) do
+        local is_affected = ent.components.MYImanager ~= nil
+        if _G[MOD_CODE].ShouldBeAffected(ent) then
+            if not is_affected then
+                _G[MOD_CODE].EnableForEntity(ent)
+            end
+        elseif is_affected then
+            _G[MOD_CODE].DisableForEntity(ent)
+        end
+    end
+end

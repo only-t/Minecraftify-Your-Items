@@ -14,6 +14,8 @@ _G.MYI.modgetpersistentdata(_G.MYI.MOD_SETTINGS.FILENAME, function(_, data)
     end
 end)
 
+_G.MYI.CURRENT_SETTINGS = loaded_settings
+
 -- [[ Add mod settings to the Game Options screen ]]
 local MYISettingsTab = require("widgets/MYIsettingstab")
 local OptionsScreen = require("screens/redux/optionsscreen")
@@ -48,9 +50,8 @@ OptionsScreen.Apply = function(self, ...)
     end
 
     _G.MYI.modsetpersistentdata(_G.MYI.MOD_SETTINGS.FILENAME, loaded_settings, function()
-        if _G.ThePlayer then -- Player exists == we're changing settings during playtime
-            _G.ThePlayer.mc_items = {  } -- Reset the mc item tracker
-        end
+        _G.MYI.CURRENT_SETTINGS = loaded_settings
+        _G.MYI.UpdateAffectedEntities()
     end)
 
     old_OptionsScreen_Apply(self, ...)

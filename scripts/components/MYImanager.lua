@@ -1,10 +1,4 @@
 local function ClearEffect(self)
-    if ThePlayer == nil then
-        return
-    end
-    
-    ThePlayer.mc_items[self.inst] = nil
-
     self.inst.AnimState:ClearDefaultEffectHandle()
     self.shader_set = false
     
@@ -19,11 +13,11 @@ end
 local MYIManager = Class(function(self, inst)
     self.inst = inst
 
+    self.shader_set = false
+
     if not self.inst:IsAsleep() then
         self.inst:StartUpdatingComponent(self)
     end
-
-    self.shader_set = false
 end)
 
 function MYIManager:OnRemoveEntity()
@@ -45,10 +39,6 @@ function MYIManager:OnEntityWake()
 end
 
 function MYIManager:OnUpdate()
-    if ThePlayer == nil then
-        return
-    end
-
     if self.inst.components.billboardfixmanager ~= nil then -- For the First Person Mod
         self.inst:RemoveComponent("billboardfixmanager")
         self.shader_set = false
@@ -71,17 +61,13 @@ function MYIManager:OnUpdate()
     end
 
     if self.shader_set then
-        if Profile:GetValue(_G.MYI.SETTINGS.OPTIONS.SHADOWS.OPTIONS_STR) then
-            ThePlayer.mc_items[self.inst] = self.inst:GetPosition() -- Update the shadows position
-        end
-
         local x, y, z = self.inst.Transform:GetWorldPosition()
         local floating = (self.inst.components.floater and self.inst.components.floater.showing_effect) or false
         local param_x = math.floor(x * 1000) -- Multiplying by 1000 for a 4 floating point precision, which is decent enough
         local param_y = TheCamera.pitch / 360 + math.floor(y * 100000) -- Y can get more precision because it will never get too big
         local param_z = math.floor(z * 1000)
 
-        if Profile:GetValue(MYI.SETTINGS.OPTIONS.WORLD_Y.OPTIONS_STR) then
+        if MYI.CURRENT_SETTINGS[MYI.MOD_SETTINGS.SETTINGS.WORLD_Y.ID] then
             param_x = param_x + 0.5
         end
 
