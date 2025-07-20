@@ -33,7 +33,7 @@ end)
 
 AddPlayerPostInit(function(inst)
     if not _G.TheNet:IsDedicated() then
-        inst.MYIshadows = _G.SpawnPrefab("MYIshadows")
+        inst.MYIshadows = _G.SpawnPrefab("myishadows")
         inst.MYIshadows.entity:SetParent(inst.entity)
     end
 end)
