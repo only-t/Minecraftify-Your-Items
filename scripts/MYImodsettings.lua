@@ -9,8 +9,20 @@ _G.MYI.modgetpersistentdata(_G.MYI.MOD_SETTINGS.FILENAME, function(_, data)
         end
 
         _G.MYI.modsetpersistentdata(_G.MYI.MOD_SETTINGS.FILENAME, _G.json.encode(loaded_settings))
-    else -- Otherwise load existing settings, even if some might be missing
+    else -- Otherwise just check for missing data
         loaded_settings = _G.json.decode(data)
+
+        local was_updated = false
+        for _, setting in pairs(_G.MYI.MOD_SETTINGS.SETTINGS) do
+            if loaded_settings[setting.ID] == nil then
+                loaded_settings[setting.ID] = setting.DEFAULT
+                was_updated = true
+            end
+        end
+
+        if was_updated then
+            _G.MYI.modsetpersistentdata(_G.MYI.MOD_SETTINGS.FILENAME, _G.json.encode(loaded_settings))
+        end
     end
 end)
 

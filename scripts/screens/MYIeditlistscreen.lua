@@ -67,6 +67,8 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
     self.listpanel = self.dialog:InsertWidget(Widget("listpanel"))
     self.listpanel:SetPosition(0, 0)
 
+    self.rows = {  }
+
 	self.dirty = false
 
     local function OnTextInputted(w)
@@ -83,6 +85,7 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
         local widget = Widget("row_"..idx)
         widget.bg = widget:AddChild(Image("images/frontend_redux.xml", "serverlist_listitem_normal.tex"))
         widget.bg:ScaleToSize(row_width + 20, row_height)
+		widget.bg:SetClickable(false)
         
         widget.editline = widget:AddChild(TEMPLATES.StandardSingleLineTextEntry("", row_width - del_btn_width, row_height, CHATFONT, 28, ""))
         widget.editline:SetPosition(-del_btn_width / 2, 0)
@@ -90,6 +93,16 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
 
         widget.delbtn = widget:AddChild(TEMPLATES.StandardButton(function() self:DeleteRow(widget.row_data.id) end, "Delete", { del_btn_width, del_btn_height }))
         widget.delbtn:SetPosition((row_width - del_btn_width) / 2, 0)
+
+        widget.editline:SetFocusChangeDir(MOVE_RIGHT, widget.delbtn)
+        widget.delbtn:SetFocusChangeDir(MOVE_LEFT, widget.editline)
+
+        widget.focus_forward = widget.editline
+
+        widget.editline.ongainfocusfn = function() self.scroll_list:OnWidgetFocus(widget) end
+        widget.delbtn.ongainfocusfn = function() self.scroll_list:OnWidgetFocus(widget) end
+
+        table.insert(self.rows, widget)
 
         return widget
 	end
@@ -101,10 +114,14 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
             widget.editline:Show()
             widget.editline.textbox:SetString(data.data)
             widget.delbtn:Show()
+
+			widget:Enable()
         else
             widget.bg:Hide()
             widget.editline:Hide()
             widget.delbtn:Hide()
+
+			widget:Disable()
 		end
 	end
 
@@ -117,6 +134,7 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
             scroll_context = {  },
             widget_width  = row_width,
             widget_height = row_height,
+			force_peek = true,
             num_visible_rows = 10,
             num_columns = 1,
             item_ctor_fn = ScrollWidgetsCtor,
@@ -140,10 +158,6 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
     self.unsaved_icon:ScaleToSize(50, 50)
     self.unsaved_icon.OnGainFocus = function(self, ...)
         self._base.OnGainFocus(self, ...)
-        if TheInput:ControllerAttached() then
-            return
-        end
-
         if self:IsVisible() then
             self.tooltip:Show()
         end
@@ -151,26 +165,51 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
     self.unsaved_icon.OnLoseFocus = function(self, ...)
         self._base.OnLoseFocus(self, ...)
 
-        if TheInput:ControllerAttached() then
-            return
+        if not TheInput:ControllerAttached() then
+            self.tooltip:Hide()
         end
-
-        self.tooltip:Hide()
     end
 
     self.unsaved_icon.tooltip = self.dialog:AddChild(MakeUnsavedChangesWarningTooltip())
     self.unsaved_icon:Hide()
     self.unsaved_icon.tooltip:Hide()
 
-    self.addnewrowbtn = self.scroll_list:AddChild(TEMPLATES.StandardButton(function() self:AddNewRow() end, "Add New", { add_btn_width, add_btn_height }))
+    self.addnewrowbtn = self.dialog:AddChild(TEMPLATES.StandardButton(function() self:AddNewRow() end, "Add New", { add_btn_width, add_btn_height }))
     self.addnewrowbtn:SetPosition((-row_width + add_btn_width) / 2, -(self.scroll_list.visible_rows / 2 * row_height + add_btn_height))
 
 	if TheInput:ControllerAttached() then
         self.dialog.actions:Hide()
 	end
 
-	self.default_focus = self.scroll_list
+    self:_DoFocusHookups()
 end)
+
+function MYIEditListScreen:_DoFocusHookups()
+    self.scroll_list:ClearFocusDirs()
+    self.addnewrowbtn:ClearFocusDirs()
+
+    if self.scroll_list.items == nil or #self.scroll_list.items <= 0 then
+        self.default_focus = self.addnewrowbtn
+        self.addnewrowbtn:SetFocus()
+    else
+        self.default_focus = self.scroll_list
+        self.scroll_list:SetFocusChangeDir(MOVE_DOWN, self.addnewrowbtn)
+        self.addnewrowbtn:SetFocusChangeDir(MOVE_UP, self.scroll_list.widgets_to_update[math.min(#self.edited_data, #self.scroll_list.widgets_to_update - 1)])
+    end
+end
+
+function MYIEditListScreen:GetHelpText()
+	local t = {  }
+	local controller_id = TheInput:GetControllerID()
+
+	table.insert(t, TheInput:GetLocalizedControl(controller_id, CONTROL_CANCEL) .. " " .. STRINGS.UI.HELP.BACK)
+    
+	if self:IsDirty() then
+		table.insert(t, TheInput:GetLocalizedControl(controller_id, CONTROL_MENU_START) .. " " .. STRINGS.UI.HELP.APPLY)
+	end
+
+	return table.concat(t, "  ")
+end
 
 function MYIEditListScreen:AddNewRow()
     table.insert(self.edited_data, { id = #self.edited_data + 1, data = "" })
@@ -194,7 +233,13 @@ function MYIEditListScreen:UpdateList()
         self:MakeDirty(false)
     end
 
+    if #self.edited_data <= 0 then
+        self.scroll_list.widgets_to_update[1]:SetFocus()
+    end
+
     self.scroll_list:SetItemsData(self.edited_data)
+
+    self:_DoFocusHookups()
 end
 
 function MYIEditListScreen:MakeDirty(dirty)
