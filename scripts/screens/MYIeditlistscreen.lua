@@ -89,7 +89,18 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
         
         widget.editline = widget:AddChild(TEMPLATES.StandardSingleLineTextEntry("", row_width - del_btn_width, row_height, CHATFONT, 28, ""))
         widget.editline:SetPosition(-del_btn_width / 2, 0)
+        widget.editline:SetOnGainFocus( function() widget.editline.textbox:OnGainFocus() end )
+        widget.editline:SetOnLoseFocus( function() widget.editline.textbox:OnLoseFocus() end )
+
+        widget.editline.textbox:SetTextLengthLimit(50)
+        widget.editline.textbox:SetForceEdit(true)
+        widget.editline.textbox:EnableWordWrap(false)
+        widget.editline.textbox:EnableScrollEditWindow(true)
+        widget.editline.textbox:SetHelpTextEdit("")
+        widget.editline.textbox.GetHelpText = function() return widget.editline:GetHelpText() end
         widget.editline.textbox.OnTextInputted = function() OnTextInputted(widget) end
+
+        widget.editline.focus_forward = widget.editline.textbox
 
         widget.delbtn = widget:AddChild(TEMPLATES.StandardButton(function() self:DeleteRow(widget.row_data.id) end, "Delete", { del_btn_width, del_btn_height }))
         widget.delbtn:SetPosition((row_width - del_btn_width) / 2, 0)
@@ -177,10 +188,6 @@ local MYIEditListScreen = Class(Screen, function(self, owner, list_title, data, 
     self.addnewrowbtn = self.dialog:AddChild(TEMPLATES.StandardButton(function() self:AddNewRow() end, "Add New", { add_btn_width, add_btn_height }))
     self.addnewrowbtn:SetPosition((-row_width + add_btn_width) / 2, -(self.scroll_list.visible_rows / 2 * row_height + add_btn_height))
 
-	if TheInput:ControllerAttached() then
-        self.dialog.actions:Hide()
-	end
-
     self:_DoFocusHookups()
 end)
 
@@ -252,13 +259,13 @@ function MYIEditListScreen:MakeDirty(dirty)
     if self.dirty then
         self.unsaved_icon:Show()
 
-        if TheInput:ControllerAttached() then
+        if self.is_controller_attached then
             self.unsaved_icon.tooltip:Show()
         end
     else
         self.unsaved_icon:Hide()
 
-        if TheInput:ControllerAttached() then
+        if self.is_controller_attached then
             self.unsaved_icon.tooltip:Hide()
         end
     end
@@ -313,6 +320,19 @@ function MYIEditListScreen:ConfirmRevert(callback)
 	)
 end
 
+function MYIEditListScreen:OnControllerChanged(attached)
+	if attached then
+        self.dialog.actions:Hide()
+
+        if self.dirty then
+            self.unsaved_icon.tooltip:Show()
+        end
+    else
+        self.dialog.actions:Show()
+        self.unsaved_icon.tooltip:Hide()
+	end
+end
+
 function MYIEditListScreen:OnControl(control, down)
     if MYIEditListScreen._base.OnControl(self, control, down) then return true end
 
@@ -325,6 +345,15 @@ function MYIEditListScreen:OnControl(control, down)
             return true
         end
 	end
+end
+
+function MYIEditListScreen:OnUpdate()
+    local is_attached = TheInput:ControllerAttached()
+
+    if self.is_controller_attached ~= is_attached then
+        self.is_controller_attached = is_attached
+        self:OnControllerChanged(is_attached)
+    end
 end
 
 return MYIEditListScreen
