@@ -60,7 +60,7 @@ local function fn()
     EmitterManager:AddEmitter(inst, nil, function()
         effect:ClearAllParticles(0)
 
-        if not MYI.CURRENT_SETTINGS[MYI.MOD_SETTINGS.SETTINGS.SHADOWS.ID] then
+        if not MYI.GetModSetting(MYI.MOD_SETTINGS.SETTINGS.SHADOWS.ID) then
             return
         end
 

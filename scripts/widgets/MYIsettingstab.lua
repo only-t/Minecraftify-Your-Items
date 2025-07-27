@@ -108,7 +108,7 @@ local MYISettingsTab = Class(Widget, function(self, owner)
 		local widget_name = ""
 		if setting.TYPE == MYI.SETTING_TYPES.SPINNER then
 			widget_name = string.lower(setting.ID).."_spinner"
-			self[widget_name] = CreateTextSpinner(setting.NAME, setting.VALUES, setting.TOOLTIP)
+			self[widget_name] = CreateTextSpinner(setting.SPINNER_TITLE, setting.VALUES, setting.TOOLTIP)
 			self[widget_name].OnChanged = function(_, data)
 				self.owner.working[setting.ID] = data
 				self.owner:UpdateMenu()
@@ -117,9 +117,9 @@ local MYISettingsTab = Class(Widget, function(self, owner)
 		
 		if setting.TYPE == MYI.SETTING_TYPES.LIST then -- List mod setting gets a button created to open itself
 			widget_name = string.lower(setting.ID).."_btn"
-			self[widget_name] = CreateSettingButton(setting.NAME,
+			self[widget_name] = CreateSettingButton(setting.SPINNER_TITLE,
 				function()
-					OpenList(self.owner, setting.NAME, deepcopy(self.owner.working[setting.ID]), function(data)
+					OpenList(self.owner, setting.SPINNER_TITLE, deepcopy(self.owner.working[setting.ID]), function(data)
 						self.owner.working[setting.ID] = data
 						if #self.owner.working[setting.ID] ~= #self.owner.options[setting.ID] then
 							self.owner:MakeDirty()

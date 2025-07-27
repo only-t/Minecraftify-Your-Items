@@ -67,7 +67,7 @@ function MYIManager:OnUpdate()
         local param_y = TheCamera.pitch / 360 + math.floor(y * 100000) -- Y can get more precision because it will never get too big
         local param_z = math.floor(z * 1000)
 
-        if MYI.CURRENT_SETTINGS[MYI.MOD_SETTINGS.SETTINGS.WORLD_Y.ID] then
+        if MYI.GetModSetting(MYI.MOD_SETTINGS.SETTINGS.WORLD_Y.ID) then
             param_x = param_x + 0.5
         end
 

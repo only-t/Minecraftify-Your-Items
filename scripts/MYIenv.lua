@@ -69,7 +69,7 @@ end
 ---@param data table|str
 ---@param cb function
 ---@return void
-local function modsetpersistentdata(filename, data, cb)
+local function ModSetPersistentData(filename, data, cb)
     if type(data) == "table" then
         data = _G.json.encode(data)
     elseif type(data) ~= "string" then
@@ -92,9 +92,21 @@ end
 ---@param filename string
 ---@param cb function
 ---@return void
-local function modgetpersistentdata(filename, cb)
+local function ModGetPersistentData(filename, cb)
     modassert(type(cb) == "function", "Failed to load persistent data!", "cb needs to be a function!")
     _G.TheSim:GetPersistentString(filename, cb)
+end
+
+---
+--- Retrieves current mod setting using `setting_id`. Will print a message if `setting_id` doesn't exist.
+---@param setting_id string
+---@return table
+local function GetModSetting(setting_id)
+    if _G[MOD_CODE].CURRENT_SETTINGS[setting_id] ~= nil then
+        return _G[MOD_CODE].CURRENT_SETTINGS[setting_id]
+    end
+
+    modprint(_G[MOD_CODE].PRINT, "Trying to get mod setting "..tostring(setting_id).." but it does not seem to exist.")
 end
 
 -- [[ Disable for live builds ]]
@@ -110,8 +122,9 @@ _G[MOD_CODE].ERROR_PREFIX = "["..MOD_CODE.."] "..MOD_NAME.." - ERROR! "
 
 _G[MOD_CODE].modprint = modprint
 _G[MOD_CODE].modassert = modassert
-_G[MOD_CODE].modsetpersistentdata = modsetpersistentdata
-_G[MOD_CODE].modgetpersistentdata = modgetpersistentdata
+_G[MOD_CODE].ModSetPersistentData = ModSetPersistentData
+_G[MOD_CODE].ModGetPersistentData = ModGetPersistentData
+_G[MOD_CODE].GetModSetting = GetModSetting
 
 
 -- [[                                             ]] --
@@ -140,7 +153,7 @@ _G[MOD_CODE].MOD_SETTINGS = {
     SETTINGS = {
         WORLD_Y = {
             ID = "MYI_world_y",
-            NAME = "Use world Y axis:",
+            SPINNER_TITLE = "Use world Y axis:",
             TOOLTIP = "Makes items stay perpendicular to the ground regardless of the cameras pitch.",
             COLUMN = 1,
             TYPE = _G[MOD_CODE].SETTING_TYPES.SPINNER,
@@ -149,7 +162,7 @@ _G[MOD_CODE].MOD_SETTINGS = {
         },
         SHADOWS = {
             ID = "MYI_shadows",
-            NAME = "Use shadows:",
+            SPINNER_TITLE = "Use shadows:",
             TOOLTIP = "Creates minecraft style shadows under dropped items.\nMay affect performence.",
             COLUMN = 1,
             TYPE = _G[MOD_CODE].SETTING_TYPES.SPINNER,
@@ -158,7 +171,7 @@ _G[MOD_CODE].MOD_SETTINGS = {
         },
         EXCLUDE_TAGS = {
             ID = "MYI_exclude_tags",
-            NAME = "Tag exclusion list:",
+            SPINNER_TITLE = "Tag exclusion list:",
             TOOLTIP = "Create you very own exclusion list.\nItems with any of the tags from this list will not get the minecraft effect!",
             COLUMN = 2,
             TYPE = _G[MOD_CODE].SETTING_TYPES.LIST,
@@ -171,11 +184,13 @@ _G[MOD_CODE].MOD_SETTINGS = {
         },
         EXCLUDE_PREFABS = {
             ID = "MYI_exclude_prefabs",
-            NAME = "Entity exclusion list:",
+            SPINNER_TITLE = "Entity exclusion list:",
             TOOLTIP = "Create you very own exclusion list.\nItems from this list will not get the minecraft effect!\nYou must use entity prefabs for this list.",
             COLUMN = 2,
             TYPE = _G[MOD_CODE].SETTING_TYPES.LIST,
-            DEFAULT = {  }
+            DEFAULT = {
+                { id = 1, data = "fireflies" }
+            }
         }
     }
 }
