@@ -2,6 +2,7 @@ local Widget = require("widgets/widget")
 local Grid = require("widgets/grid")
 local Text = require("widgets/text")
 local Image = require("widgets/image")
+local PopupDialogScreen = require "screens/redux/popupdialog"
 local MYIEditListScreen = require("screens/MYIeditlistscreen")
 
 local TEMPLATES = require("widgets/redux/templates")
@@ -24,11 +25,56 @@ local function AddListItemBackground(w)
 	w.bg:MoveToBack()
 end
 
+local function CreateNumericSpinner(labeltext, values, tooltip_text)
+	local spinnerdata = {  }
+	for i = values[1], values[2], values[3] do
+		table.insert(spinnerdata, { text = tostring(i), data = i })
+	end
+
+	local w = TEMPLATES.LabelSpinner(labeltext, spinnerdata, label_width, spinner_width, spinner_height, space_between, nil, nil, narrow_field_nudge, nil, nil, tooltip_text)
+	AddListItemBackground(w)
+	return w.spinner
+end
+
 local function CreateTextSpinner(labeltext, spinnerdata, tooltip_text)
 	local w = TEMPLATES.LabelSpinner(labeltext, spinnerdata, label_width, spinner_width, spinner_height, space_between, nil, nil, narrow_field_nudge, nil, nil, tooltip_text)
 	AddListItemBackground(w)
 
 	return w.spinner
+end
+
+local function CreateKeySelection(labeltext, btn_action, tooltip_text)
+    local font = CHATFONT
+    local font_size = 25
+    local offset = narrow_field_nudge
+
+    local total_width = label_width + spinner_width + space_between
+    local w = Widget("labelbindingbtn")
+    w.label = w:AddChild(Text(font, font_size, labeltext))
+    w.label:SetPosition((-total_width / 2) + (label_width / 2) + offset, 0)
+    w.label:SetRegionSize(label_width, spinner_height)
+    w.label:SetHAlign(ANCHOR_RIGHT)
+    w.label:SetColour(UICOLOURS.GOLD)
+
+	w.binding_btn = w:AddChild(ImageButton("images/global_redux.xml", "blank.tex", "spinner_focus.tex"))
+	w.binding_btn:ForceImageSize(spinner_width, spinner_height)
+	w.binding_btn:SetTextColour(UICOLOURS.GOLD_CLICKABLE)
+	w.binding_btn:SetFont(CHATFONT)
+	w.binding_btn:SetTextSize(30)
+	w.binding_btn:SetPosition((total_width / 2) - (spinner_width / 2) + offset, 0)
+	w.binding_btn:SetOnClick(btn_action)
+	w.binding_btn:SetTextFocusColour(UICOLOURS.GOLD_FOCUS)
+
+	w.binding_btn:SetDisabledFont(CHATFONT)
+	w.binding_btn:SetText("")
+
+    w.focus_forward = w.binding_btn
+
+    w.tooltip_text = tooltip_text
+
+	AddListItemBackground(w)
+
+	return w.binding_btn
 end
 
 local function CreateSettingButton(labeltext, btn_action, tooltip_text)
@@ -86,12 +132,15 @@ local function AddSettingTooltip(widget, type, tooltip, tooltipdivider)
 	widget.bg.ongainfocus = ongainfocus
 	widget.bg.onlosefocus = onlosefocus
 
-	if type == MYI.SETTING_TYPES.SPINNER then
+	if type == MYI.SETTING_TYPES.SPINNER or type == MYI.SETTING_TYPES.NUM_SPINNER then
 		widget.spinner.ongainfocusfn = ongainfocus
 		widget.spinner.onlosefocusfn = onlosefocus
 	elseif type == MYI.SETTING_TYPES.LIST then
 		widget.btn.ongainfocus = ongainfocus
 		widget.btn.onlosefocus = onlosefocus
+	elseif type == MYI.SETTING_TYPES.KEY_SELECT then
+		widget.binding_btn.ongainfocusfn = ongainfocus
+		widget.binding_btn.onlosefocusfn = onlosefocus
 	end
 end
 
@@ -110,6 +159,50 @@ local MYISettingsTab = Class(Widget, function(self, owner)
 			widget_name = string.lower(setting.ID).."_spinner"
 			self[widget_name] = CreateTextSpinner(setting.SPINNER_TITLE, setting.VALUES, setting.TOOLTIP)
 			self[widget_name].OnChanged = function(_, data)
+				self.owner.working[setting.ID] = data
+				self.owner:UpdateMenu()
+			end
+		end
+		
+		if setting.TYPE == MYI.SETTING_TYPES.NUM_SPINNER then
+			widget_name = string.lower(setting.ID).."_spinner"
+			self[widget_name] = CreateNumericSpinner(setting.SPINNER_TITLE, setting.VALUES, setting.TOOLTIP)
+			self[widget_name].OnChanged = function(_, data)
+				self.owner.working[setting.ID] = data
+				self.owner:UpdateMenu()
+			end
+			self[widget_name].min = setting.VALUES[1]
+			self[widget_name].step = setting.VALUES[3]
+		end
+		
+		if setting.TYPE == MYI.SETTING_TYPES.KEY_SELECT then
+			widget_name = string.lower(setting.ID).."_key_selection"
+			self[widget_name] = CreateKeySelection(setting.SPINNER_TITLE,
+			function()
+				local key_str = STRINGS.UI.CONTROLSSCREEN.INPUTS[1][setting.DEFAULT]
+				local subtext = STRINGS.UI.CONTROLSSCREEN.CONTROL_SELECT.."\n\n"..string.format(STRINGS.UI.CONTROLSSCREEN.DEFAULT_CONTROL_TEXT, key_str)
+				local popup = PopupDialogScreen(setting.SPINNER_TITLE, subtext, {  })
+				popup.dialog.body:SetPosition(0, 0)
+				popup.OnControl = function(_, control, down)
+					if control == CONTROL_CANCEL and not down then
+						TheFrontEnd:PopScreen()
+						return false
+					end
+				end
+				popup.OnRawKey = function(_, key, down)
+					if key ~= KEY_ESCAPE and down then
+						self[widget_name]:OnChanged(key)
+						TheFrontEnd:PopScreen()
+					end
+
+					return false
+				end
+
+				TheFrontEnd:PushScreen(popup)
+			end,
+			setting.TOOLTIP)
+			self[widget_name].OnChanged = function(binding_btn, data)
+				binding_btn:SetText(STRINGS.UI.CONTROLSSCREEN.INPUTS[1][data])
 				self.owner.working[setting.ID] = data
 				self.owner:UpdateMenu()
 			end

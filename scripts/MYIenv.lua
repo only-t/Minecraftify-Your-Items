@@ -143,7 +143,9 @@ local enableDisableOptions = {
 
 _G[MOD_CODE].SETTING_TYPES = {
     SPINNER = "spinner",
+    NUM_SPINNER = "num_spinner",
     LIST = "list",
+    KEY_SELECT = "key_select"
 }
 
 _G[MOD_CODE].MOD_SETTINGS = {

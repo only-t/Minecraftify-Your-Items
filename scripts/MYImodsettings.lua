@@ -73,17 +73,37 @@ local function EnabledOptionsIndex(enabled)
     return enabled and 2 or 1
 end
 
+local function NumSpinnerOptionsIndex(val, min, step)
+    return 1 + (val - min) / step
+end
+
 local old_OptionsScreen_InitializeSpinners = OptionsScreen.InitializeSpinners
 OptionsScreen.InitializeSpinners = function(self, ...)
     for _, w in pairs(self.subscreener.sub_screens[_G.MYI.MOD_CODE].left_column) do
         if w.type == _G.MYI.SETTING_TYPES.SPINNER then
             w:SetSelectedIndex(EnabledOptionsIndex(self.working[w.setting_id]))
         end
+
+        if w.type == _G.LFC.SETTING_TYPES.NUM_SPINNER then
+            w:SetSelectedIndex(NumSpinnerOptionsIndex(self.working[w.setting_id], w.min, w.step))
+        end
+
+        if w.type == _G.LFC.SETTING_TYPES.KEY_SELECT then
+            w:SetText(self.working[w.setting_id] ~= nil and _G.STRINGS.UI.CONTROLSSCREEN.INPUTS[1][self.working[w.setting_id]] or "")
+        end
     end
 
     for _, w in pairs(self.subscreener.sub_screens[_G.MYI.MOD_CODE].right_column) do
         if w.type == _G.MYI.SETTING_TYPES.SPINNER then
             w:SetSelectedIndex(EnabledOptionsIndex(self.working[w.setting_id]))
+        end
+
+        if w.type == _G.LFC.SETTING_TYPES.NUM_SPINNER then
+            w:SetSelectedIndex(NumSpinnerOptionsIndex(self.working[w.setting_id], w.min, w.step))
+        end
+
+        if w.type == _G.LFC.SETTING_TYPES.KEY_SELECT then
+            w:SetText(self.working[w.setting_id] ~= nil and _G.STRINGS.UI.CONTROLSSCREEN.INPUTS[1][self.working[w.setting_id]] or "")
         end
     end
 
