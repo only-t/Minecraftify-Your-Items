@@ -106,7 +106,7 @@ local function GetModSetting(setting_id)
         return _G[MOD_CODE].CURRENT_SETTINGS[setting_id]
     end
 
-    modprint(_G[MOD_CODE].PRINT, "Trying to get mod setting "..tostring(setting_id).." but it does not seem to exist.")
+    modprint(_G[MOD_CODE].WARN, "Trying to get mod setting "..tostring(setting_id).." but it does not seem to exist.")
 end
 
 -- [[ Disable for live builds ]]
@@ -132,7 +132,7 @@ _G[MOD_CODE].GetModSetting = GetModSetting
 -- [[                                             ]] --
 
 -- [[ Constants ]]
--- EMPTY
+_G[MOD_CODE].MAX_NUM_SHADOWS = 1024 -- 1024 should be enough, even megabasers shouldn't reach this amount of items on screen
 
 -- [[ Mod Settings ]] -- Not to be confused with configuration_options.
                       -- These show up in Game Options and can be updated during gameplay.
@@ -174,7 +174,7 @@ _G[MOD_CODE].MOD_SETTINGS = {
         EXCLUDE_TAGS = {
             ID = "MYI_exclude_tags",
             SPINNER_TITLE = "Tag exclusion list:",
-            TOOLTIP = "Create you very own exclusion list.\nItems with any of the tags from this list will not get the minecraft effect!",
+            TOOLTIP = "Create you very own exclusion list.\nItems with any of the tags from this list will not get minecraft-ified!",
             COLUMN = 2,
             TYPE = _G[MOD_CODE].SETTING_TYPES.LIST,
             DEFAULT = {
@@ -186,8 +186,8 @@ _G[MOD_CODE].MOD_SETTINGS = {
         },
         EXCLUDE_PREFABS = {
             ID = "MYI_exclude_prefabs",
-            SPINNER_TITLE = "Entity exclusion list:",
-            TOOLTIP = "Create you very own exclusion list.\nItems from this list will not get the minecraft effect!\nYou must use entity prefabs for this list.",
+            SPINNER_TITLE = "Prefab exclusion list:",
+            TOOLTIP = "Create you very own exclusion list.\nItems with a prefab from this list will not get minecraft-ified!",
             COLUMN = 2,
             TYPE = _G[MOD_CODE].SETTING_TYPES.LIST,
             DEFAULT = {

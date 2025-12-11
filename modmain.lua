@@ -24,7 +24,7 @@ modimport("scripts/MYImodsettings")
 AddPrefabPostInitAny(function(inst)
     if not _G.TheNet:IsDedicated() and inst.AnimState then
         inst:DoTaskInTime(0, function() -- Wait 1 frame for the replica components to get created on the client
-            if inst.replica.inventoryitem and not inst.replica.combat and _G.MYI.ShouldBeAffected(inst) then
+            if _G.MYI.ShouldBeAffected(inst) then
                 _G.MYI.EnableForEntity(inst)
             end
         end)

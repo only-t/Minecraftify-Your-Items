@@ -42,7 +42,7 @@ local function fn()
     effect:InitEmitters(1)
     effect:SetRenderResources(0, resolvefilepath(TEXTURE), resolvefilepath(SHADER))
     effect:SetUVFrameSize(0, 1, 1)
-    effect:SetMaxNumParticles(0, 1000) -- 1000 should be enough, even megabasers shouldn't reach this amount of items on screen
+    effect:SetMaxNumParticles(0, MYI.MAX_NUM_SHADOWS)
     effect:SetMaxLifetime(0, 0)
     effect:SetColourEnvelope(0, COLOUR_ENVELOPE_NAME)
     effect:SetScaleEnvelope(0, SCALE_ENVELOPE_NAME)

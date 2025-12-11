@@ -1,8 +1,12 @@
 local function ClearEffect(self)
+    if self.inst.AnimState == nil then -- How?
+        return
+    end
+
     self.inst.AnimState:ClearDefaultEffectHandle()
     self.shader_set = false
     
-    local floating = (self.inst.components.floater and self.inst.components.floater.showing_effect) or false
+    local floating = self.inst.components.floater and self.inst.components.floater.showing_effect or false
     if floating then
         self.inst.AnimState:SetFloatParams(-0.05, 1.0, self.inst.components.floater.bob_percent)
     else
@@ -25,13 +29,13 @@ function MYIManager:OnRemoveEntity()
 end
 
 function MYIManager:OnRemoveFromEntity()
-    ClearEffect(self)
 	self.inst:StopUpdatingComponent(self)
+    ClearEffect(self)
 end
 
 function MYIManager:OnEntitySleep()
-    ClearEffect(self) -- To remove the shadow
 	self.inst:StopUpdatingComponent(self)
+    ClearEffect(self) -- To remove the shadow
 end
 
 function MYIManager:OnEntityWake()
