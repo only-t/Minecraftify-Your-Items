@@ -84,11 +84,11 @@ OptionsScreen.InitializeSpinners = function(self, ...)
             w:SetSelectedIndex(EnabledOptionsIndex(self.working[w.setting_id]))
         end
 
-        if w.type == _G.LFC.SETTING_TYPES.NUM_SPINNER then
+        if w.type == _G.MYI.SETTING_TYPES.NUM_SPINNER then
             w:SetSelectedIndex(NumSpinnerOptionsIndex(self.working[w.setting_id], w.min, w.step))
         end
 
-        if w.type == _G.LFC.SETTING_TYPES.KEY_SELECT then
+        if w.type == _G.MYI.SETTING_TYPES.KEY_SELECT then
             w:SetText(self.working[w.setting_id] ~= nil and _G.STRINGS.UI.CONTROLSSCREEN.INPUTS[1][self.working[w.setting_id]] or "")
         end
     end
@@ -98,11 +98,11 @@ OptionsScreen.InitializeSpinners = function(self, ...)
             w:SetSelectedIndex(EnabledOptionsIndex(self.working[w.setting_id]))
         end
 
-        if w.type == _G.LFC.SETTING_TYPES.NUM_SPINNER then
+        if w.type == _G.MYI.SETTING_TYPES.NUM_SPINNER then
             w:SetSelectedIndex(NumSpinnerOptionsIndex(self.working[w.setting_id], w.min, w.step))
         end
 
-        if w.type == _G.LFC.SETTING_TYPES.KEY_SELECT then
+        if w.type == _G.MYI.SETTING_TYPES.KEY_SELECT then
             w:SetText(self.working[w.setting_id] ~= nil and _G.STRINGS.UI.CONTROLSSCREEN.INPUTS[1][self.working[w.setting_id]] or "")
         end
     end
