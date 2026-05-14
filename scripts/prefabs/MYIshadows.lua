@@ -31,6 +31,9 @@ local function fn()
     local inst = CreateEntity()
 
     inst.entity:AddTransform()
+
+    inst:AddTag("NOCLICK")
+    inst:AddTag("NOBLOCK")
     
     inst.persists = false
 
